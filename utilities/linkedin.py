@@ -31,7 +31,6 @@ def parse_connections_json():
                                             row_json[i]["name"],
                                             row_json[i]["title"],
                                             row_json[i]["connections"][j]]
-        break
     return(output_dataframe)
 
 def update_connections_table(dataframe):
