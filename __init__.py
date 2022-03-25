@@ -26,13 +26,23 @@ class Table(Connection):
 
     def split_create_update_from_dataframe(self, dataframe):
         overlap_rows = []
-        rows = self.engine.execute("select " + self.primary_key + " from " + self.name + " where " + self.primary_key + " in (" + ",".join([str(_id) for _id in dataframe[self.primary_key].to_list()]) + ")").fetchall()
+        if isinstance(dataframe[self.primary_key].to_list()[0], str):
+            rows = self.engine.execute("select " + self.primary_key + " from " + self.name + " where " + self.primary_key + " in ('" + "', '".join([str(_id) for _id in dataframe[self.primary_key].to_list()]) + "')").fetchall()
+        else:
+            rows = self.engine.execute("select " + self.primary_key + " from " + self.name + " where " + self.primary_key + " in (" + ", ".join([str(_id) for _id in dataframe[self.primary_key].to_list()]) + ")").fetchall()
         for row in rows:
             overlap_rows.append(row[0])
         return(dataframe[~dataframe[self.primary_key].isin(overlap_rows)], dataframe[dataframe[self.primary_key].isin(overlap_rows)])
 
     def update_rows(self, dataframe):
-        overlapping_id_string = ",".join([str(_id) for _id in dataframe[self.primary_key].to_list()])
+        overlapping_id_string = ""
+
+        if isinstance(dataframe[self.primary_key].to_list()[0], str):
+            overlapping_id_string = "'"
+            overlapping_id_string = overlapping_id_string + "', '".join([str(_id) for _id in dataframe[self.primary_key].to_list()])
+            overlapping_id_string = overlapping_id_string + "'"
+        else:
+            overlapping_id_string = overlapping_id_string + ", ".join([str(_id) for _id in dataframe[self.primary_key].to_list()])
 
         current_database_rows = pd.read_sql(
             "select * from " + self.name + " where " + self.primary_key + " in (" + overlapping_id_string  + ")",
@@ -55,8 +65,11 @@ class Table(Connection):
     def remove_invalid_columns(self, dataframe):
         return(dataframe.drop(columns=[col for col in dataframe if col not in self.columns]))
 
-    def upsert_from_json(self, json_records):
-        dataframe = pd.read_json(str(json.dumps(json_records)), orient="records")
+    def upsert(self, object, object_type="json"):
+        if object_type == "json":
+            dataframe = pd.read_json(str(json.dumps(json_records)), orient="records")
+        elif object_type == "dataframe":
+            dataframe = object
         dataframe = self.remove_invalid_columns(dataframe)
         (create_dataframe, update_dataframe) = self.split_create_update_from_dataframe(dataframe=dataframe)
 
