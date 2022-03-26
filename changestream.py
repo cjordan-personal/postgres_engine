@@ -36,14 +36,23 @@ class Consumer(ChangeStream):
         super(Consumer, self).__init__(slot_name=slot_name, table_name=table_name, schema_name=schema_name)
         self.queue_name = "changestream-" + table_name
 
-    def callback__consume(self, msg):
+    def queue(self, msg):
         payload = json.loads(msg.payload)
-        self.queue_changestream(payload)
+        changes_json = self.parse(payload)
+        self.queue_publish(changes_json)
 
-    def consume(self):
-        self.cursor.consume_stream(self.callback__consume)
+    def consume(self, callback="queue"):
+        if isinstance(callback, str):
+            self.cursor.consume_stream(self.queue)
+        else:
+            self.cursor.consume_stream(callback)
 
-    def queue_changestream(self, payload):
+    def queue_publish(self, changes_json):
+        queue = Publisher(queue_name=self.queue_name)
+        queue.publish(changes_json)
+        queue.close()
+
+    def parse(self, payload):
         full_results_json = []
         for change in payload["change"]:
             changes_json = []
@@ -87,6 +96,4 @@ class Consumer(ChangeStream):
 
             full_results_json.append(changes_json)
 
-        queue = Publisher(queue_name=self.queue_name)
-        queue.publish({"records": changes_json})
-        queue.close()
+        return({"records": changes_json})
