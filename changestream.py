@@ -4,7 +4,7 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import LogicalReplicationConnection
-from queuing_engine import Queue
+from queuing_engine import Publisher
 import re
 
 class ChangeStream:
@@ -36,7 +36,7 @@ class Consumer(ChangeStream):
     def __init__(self, slot_name, table_name, schema_name="public"):
         super(Consumer, self).__init__(slot_name=slot_name, table_name=table_name, schema_name=schema_name)
         self.queue_name = "changestream-" + table_name
-        self.queue = Queue(queue_name=self.queue_name)
+        self.queue = Publisher(queue_name=self.queue_name)
 
     def callback__consume(self, msg):
         payload = json.loads(msg.payload)
@@ -74,6 +74,13 @@ class Consumer(ChangeStream):
                             "new_value": result[2][1],
                             "current_value": result[2][0]
                         })
+                    elif result[0] == "add":
+                        for sub_result in result[2]:
+                            row_change_list.append({
+                                "column_name": sub_result[0],
+                                "new_value": sub_result[1],
+                                "current_value": None
+                            })
                 changes_json.append({"_id": new_keyvalues["_id"], "kind": change["kind"], "changes": row_change_list})
             elif change["kind"] == "insert":
                 changes_json.append({"_id": new_keyvalues["_id"], "kind": change["kind"], "changes": [new_keyvalues]})
