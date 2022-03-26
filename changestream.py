@@ -1,4 +1,3 @@
-from amqp_engine import Publisher
 import dictdiffer
 import json
 import os
@@ -34,23 +33,9 @@ class ChangeStream:
 class Consumer(ChangeStream):
     def __init__(self, slot_name, table_name, schema_name="public"):
         super(Consumer, self).__init__(slot_name=slot_name, table_name=table_name, schema_name=schema_name)
-        self.queue_name = "changestream-" + table_name
 
-    def queue(self, msg):
-        payload = json.loads(msg.payload)
-        changes_json = self.parse(payload)
-        self.queue_publish(changes_json)
-
-    def consume(self, callback="queue"):
-        if isinstance(callback, str):
-            self.cursor.consume_stream(self.queue)
-        else:
-            self.cursor.consume_stream(callback)
-
-    def queue_publish(self, changes_json):
-        queue = Publisher(queue_name=self.queue_name)
-        queue.publish(changes_json)
-        queue.close()
+    def consume(self, callback):
+        self.cursor.consume_stream(callback)
 
     def parse(self, payload):
         full_results_json = []
