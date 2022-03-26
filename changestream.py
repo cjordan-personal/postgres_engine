@@ -1,10 +1,9 @@
-import database_engine.auth__database_engine
+from amqp_engine import Publisher
 import dictdiffer
 import json
 import os
 import psycopg2
 from psycopg2.extras import LogicalReplicationConnection
-from queuing_engine import Publisher
 import re
 
 class ChangeStream:
@@ -36,7 +35,6 @@ class Consumer(ChangeStream):
     def __init__(self, slot_name, table_name, schema_name="public"):
         super(Consumer, self).__init__(slot_name=slot_name, table_name=table_name, schema_name=schema_name)
         self.queue_name = "changestream-" + table_name
-        self.queue = Publisher(queue_name=self.queue_name)
 
     def callback__consume(self, msg):
         payload = json.loads(msg.payload)
@@ -89,4 +87,6 @@ class Consumer(ChangeStream):
 
             full_results_json.append(changes_json)
 
-        self.queue.publish({"records": changes_json})
+        queue = Publisher(queue_name=self.queue_name)
+        queue.publish({"records": changes_json})
+        queue.close()
