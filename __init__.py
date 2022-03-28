@@ -65,7 +65,7 @@ class Table(Connection):
     def remove_invalid_columns(self, dataframe):
         return(dataframe.drop(columns=[col for col in dataframe if col not in self.columns]))
 
-    def upsert(self, object, object_type="json"):
+    def upsert(self, object, object_type="json", overwrite=True):
         if object_type == "json":
             dataframe = pd.read_json(str(json.dumps(object)), orient="records")
         elif object_type == "dataframe":
@@ -76,7 +76,7 @@ class Table(Connection):
             dataframe = self.remove_invalid_columns(dataframe)
             (create_dataframe, update_dataframe) = self.split_create_update_from_dataframe(dataframe=dataframe)
 
-            if len(update_dataframe.index) > 0:
+            if overwrite and len(update_dataframe.index) > 0:
                 update_result = self.update_rows(update_dataframe)
             if len(create_dataframe.index) > 0:
                 create_result = create_dataframe.to_sql(name=self.name, con=self.engine, if_exists="append", index=False)
