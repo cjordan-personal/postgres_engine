@@ -1,23 +1,26 @@
 import ast
-from database_engine import Connection, Table
+from postgres_engine import Connection, Table
 import hashlib
 import json
 import pandas as pd
 import re
 
-def parse_connections_json():
+def parse_connections_json(**kwargs):
     connection = Connection()
-    select_statment = """
-    select
-        _id
-        , second_degree_connections
-    from
-        companies c
-    where
-        c.second_degree_connections is not null
-        and c.second_degree_connections <> '[]'
-    """
-    dataframe = pd.read_sql(select_statment, con=connection.connection)
+    if "select_statement" in kwargs.keys():
+        select_statement = kwargs["select_statement"]
+    else:
+        select_statement = """
+        select
+            _id
+            , second_degree_connections
+        from
+            companies c
+        where
+            c.second_degree_connections is not null
+            and c.second_degree_connections <> '[]'
+        """
+    dataframe = pd.read_sql(select_statement, con=connection.connection)
     output_dataframe = pd.DataFrame(columns=["_id", "company_id", "employee_name", "employee_title", "connection_name"])
     for index, row in dataframe.iterrows():
         # Have to do this because of json.loads' funk around single quotes.
