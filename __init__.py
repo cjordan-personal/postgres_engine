@@ -39,11 +39,11 @@ class Table(Connection):
     def update_rows(self, dataframe):
         overlapping_id_string = ""
 
+        dataframe.drop_duplicates(subset=["_id"], keep="first", inplace=True)
         if isinstance(dataframe[self.primary_key].to_list()[0], str):
             overlapping_id_string = "'"
             overlapping_id_string = overlapping_id_string + "', '".join([str(_id) for _id in dataframe[self.primary_key].to_list()])
             overlapping_id_string = overlapping_id_string + "'"
-            print(overlapping_id_string)
         else:
             overlapping_id_string = overlapping_id_string + ", ".join([str(_id) for _id in dataframe[self.primary_key].to_list()])
 
