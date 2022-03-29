@@ -5,6 +5,8 @@ import os
 import pandas as pd
 import re
 from sqlalchemy import create_engine
+import warnings
+warnings.filterwarnings("ignore")
 
 class Connection:
     def __init__(self):
@@ -79,5 +81,8 @@ class Table(Connection):
             if overwrite and len(update_dataframe.index) > 0:
                 update_result = self.update_rows(update_dataframe)
             if len(create_dataframe.index) > 0:
-                create_result = create_dataframe.to_sql(name=self.name, con=self.engine, if_exists="append", index=False)
+                try:
+                    create_result = create_dataframe.to_sql(name=self.name, con=self.engine, if_exists="append", index=False)
+                except Exception as e:
+                    print(e)
         return()
