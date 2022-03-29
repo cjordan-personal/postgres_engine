@@ -43,6 +43,7 @@ class Table(Connection):
             overlapping_id_string = "'"
             overlapping_id_string = overlapping_id_string + "', '".join([str(_id) for _id in dataframe[self.primary_key].to_list()])
             overlapping_id_string = overlapping_id_string + "'"
+            print(overlapping_id_string)
         else:
             overlapping_id_string = overlapping_id_string + ", ".join([str(_id) for _id in dataframe[self.primary_key].to_list()])
 
