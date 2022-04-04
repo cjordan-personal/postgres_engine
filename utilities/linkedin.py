@@ -21,7 +21,7 @@ def parse_connections_json(**kwargs):
             and c.second_degree_connections <> '[]'
         """
     dataframe = pd.read_sql(select_statement, con=connection.connection)
-    output_dataframe = pd.DataFrame(columns=["_id", "company_id", "employee_name", "employee_title", "connection_name"])
+    output_dataframe = pd.DataFrame(columns=["_id", "company_id", "employee_name", "employee_headline", "connection_name"])
     for index, row in dataframe.iterrows():
         # Have to do this because of json.loads' funk around single quotes.
         row_json = json.loads(json.dumps(ast.literal_eval(row["second_degree_connections"])))
