@@ -1,5 +1,5 @@
 import ast
-import postgres_engine.auth__postgres_engine
+#import postgres_engine.auth__postgres_engine
 import json
 import os
 import pandas as pd
@@ -9,8 +9,8 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class Connection:
-    def __init__(self):
-        self.engine = create_engine(os.environ["POSTGRES_CONNECTION_URL"])
+    def __init__(self, connection_url):
+        self.engine = create_engine(connection_url)
         self.connection = self.engine.raw_connection()
 
     def close(self):
@@ -18,8 +18,8 @@ class Connection:
         self.engine.dispose()
 
 class Table(Connection):
-    def __init__(self, name, primary_key):
-        super(Table, self).__init__()
+    def __init__(self, name, primary_key, connection_url):
+        super(Table, self).__init__(connection_url=connection_url)
         self.name = name
         self.primary_key = primary_key
         self.columns = ast.literal_eval((re.sub("\)$", "",
