@@ -1,14 +1,13 @@
 import dictdiffer
 import json
-import os
 import psycopg2
 from psycopg2.extras import LogicalReplicationConnection
 import re
 
 class ChangeStream:
-    def __init__(self, slot_name, table_name, schema_name="public"):
+    def __init__(self, slot_name, table_name, connection_url, schema_name="public"):
         pg_creds = {}
-        (creds, locator) = re.sub(r"^postgresql://", "", os.environ["POSTGRES_CONNECTION_URL"]).split("@")
+        (creds, locator) = re.sub(r"^postgresql://", "", connection_url).split("@")
         (pg_creds["user"], pg_creds["password"]) = creds.split(":")
         (pg_creds["host"], parms) = locator.split(":")
         (pg_creds["port"], pg_creds["database"]) = parms.split("/")
