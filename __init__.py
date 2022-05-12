@@ -12,10 +12,14 @@ class Connection:
     def __init__(self, connection_url):
         self.engine = create_engine(connection_url)
         self.connection = self.engine.raw_connection()
+        self.connection_url = connection_url
 
     def close(self):
         self.connection.close()
         self.engine.dispose()
+
+    def select_to_dataframe(self, sql):
+        return(pd.read_sql(sql=sql, con=self.connection_url))
 
 class Table(Connection):
     def __init__(self, name, primary_key, connection_url):
