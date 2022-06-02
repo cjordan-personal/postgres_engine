@@ -91,3 +91,10 @@ class Table(Connection):
                 except Exception as e:
                     print(e)
         return()
+
+    def column_to_distinct_list(self, col):
+        results = self.engine.execute("select distinct " + self.name + "." + col + " from " + self.name).fetchall()
+        col_list = []
+        for result in results:
+            col_list.append(result[0])
+        return(col_list)
